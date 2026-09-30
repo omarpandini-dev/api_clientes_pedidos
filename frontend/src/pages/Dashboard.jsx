@@ -12,6 +12,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { EmptyState, ErrorState, Loading, PageTitle, Panel, StatusBadge } from '../components/Ui';
+import { formatApiDate, parseApiDate } from '../utils/dates';
 
 const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -110,7 +111,8 @@ export function Dashboard({ api, onNavigate }) {
     let ordersThisMonth = 0;
     let salesThisMonth = 0;
     data.pedidos.forEach((pedido) => {
-      const date = new Date(`${pedido.dataPedido}T12:00:00`);
+      const date = parseApiDate(pedido.dataPedido);
+      if (Number.isNaN(date.getTime())) return;
       monthly[date.getMonth()] += 1;
       if (date.getMonth() === now.getMonth()) {
         ordersThisMonth += 1;
@@ -162,7 +164,7 @@ export function Dashboard({ api, onNavigate }) {
                     <tr key={pedido.id}>
                       <td className="strong">#{pedido.id.replace('PED', '')}</td>
                       <td>{pedido.clienteNome}</td>
-                      <td>{shortDate.format(new Date(`${pedido.dataPedido}T12:00:00`))}</td>
+                      <td>{formatApiDate(shortDate, pedido.dataPedido)}</td>
                       <td>{money.format(Number(pedido.valorTotal))}</td>
                       <td><StatusBadge status={pedido.status} /></td>
                     </tr>

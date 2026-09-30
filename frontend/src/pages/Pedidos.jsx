@@ -11,6 +11,7 @@ import {
   StatusBadge,
   Toast,
 } from '../components/Ui';
+import { formatApiDate } from '../utils/dates';
 
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const dateFormat = new Intl.DateTimeFormat('pt-BR');
@@ -163,7 +164,7 @@ export function Pedidos({ api, createNonce, onCreateHandled }) {
                       <td><div className="entity-cell"><span className="avatar purple"><ClipboardList size={17} /></span><div><strong>{pedido.id}</strong><small>{pedido.formaPagamento}</small></div></div></td>
                       <td><strong>{pedido.clienteNome}</strong><small className="block">{pedido.clienteId} · {pedido.clienteUf}</small></td>
                       <td>{pedido.produtoNome}<small className="block">{pedido.produtoId}</small></td>
-                      <td><span className="inline-icon"><CalendarRange size={15} />{dateFormat.format(new Date(`${pedido.dataPedido}T12:00:00`))}</span></td>
+                      <td><span className="inline-icon"><CalendarRange size={15} />{formatApiDate(dateFormat, pedido.dataPedido)}</span></td>
                       <td>{pedido.quantidade}</td>
                       <td className="strong">{money.format(Number(pedido.valorTotal))}</td>
                       <td><StatusBadge status={pedido.status} /></td>

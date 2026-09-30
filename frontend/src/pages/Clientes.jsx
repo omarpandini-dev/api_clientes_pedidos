@@ -11,6 +11,7 @@ import {
   SearchField,
   Toast,
 } from '../components/Ui';
+import { formatApiDate } from '../utils/dates';
 
 const dateFormat = new Intl.DateTimeFormat('pt-BR');
 
@@ -125,7 +126,7 @@ export function Clientes({ api, createNonce, onCreateHandled }) {
                       <td><div>{cliente.email}</div><small>{cliente.telefone}</small></td>
                       <td>{cliente.cidade} / {cliente.uf}</td>
                       <td>{cliente.segmento}</td>
-                      <td>{dateFormat.format(new Date(`${cliente.dataCadastro}T12:00:00`))}</td>
+                      <td>{formatApiDate(dateFormat, cliente.dataCadastro)}</td>
                     </tr>
                   ))}
                 </tbody>
