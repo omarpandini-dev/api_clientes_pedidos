@@ -1,0 +1,27 @@
+{
+  "name": "api-clientes-pedidos",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "API REST de clientes, produtos e pedidos com PostgreSQL",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "migrate": "node scripts/migrate.js",
+    "import": "node scripts/import-xlsx.js",
+    "validate:data": "node scripts/validate-xlsx.js",
+    "test": "node --test --test-isolation=none --test-concurrency=1"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "decimal.js": "^10.6.0",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "pg": "^8.16.3",
+    "xlsx": "^0.18.5",
+    "zod": "^3.25.76"
+  }
+}

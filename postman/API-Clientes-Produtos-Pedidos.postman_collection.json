@@ -1,0 +1,70 @@
+{
+  "info": {
+    "_postman_id": "fbf7372a-6908-4a5d-9d3c-17b705c6c394",
+    "name": "API Clientes, Produtos e Pedidos",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "clienteId", "value": "CLI0001" },
+    { "key": "produtoId", "value": "PROD001" },
+    { "key": "pedidoId", "value": "PED00001" }
+  ],
+  "item": [
+    {
+      "name": "1 - Health",
+      "request": { "method": "GET", "url": "{{baseUrl}}/health" }
+    },
+    {
+      "name": "Clientes",
+      "item": [
+        { "name": "Listar clientes", "request": { "method": "GET", "url": "{{baseUrl}}/api/clientes?page=1&limit=20&nome=" } },
+        { "name": "Buscar cliente", "request": { "method": "GET", "url": "{{baseUrl}}/api/clientes/{{clienteId}}" } },
+        {
+          "name": "Cadastrar cliente",
+          "event": [{ "listen": "test", "script": { "exec": ["if (pm.response.code === 201) pm.collectionVariables.set('clienteId', pm.response.json().id);"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Cliente Postman\",\n  \"email\": \"cliente.postman@example.com\",\n  \"telefone\": \"(11) 99999-9999\",\n  \"cidade\": \"São Paulo\",\n  \"uf\": \"SP\",\n  \"segmento\": \"Tecnologia\"\n}" },
+            "url": "{{baseUrl}}/api/clientes"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Produtos",
+      "item": [
+        { "name": "Listar produtos", "request": { "method": "GET", "url": "{{baseUrl}}/api/produtos?page=1&limit=20&categoria=" } },
+        { "name": "Buscar produto", "request": { "method": "GET", "url": "{{baseUrl}}/api/produtos/{{produtoId}}" } },
+        {
+          "name": "Cadastrar produto",
+          "event": [{ "listen": "test", "script": { "exec": ["if (pm.response.code === 201) pm.collectionVariables.set('produtoId', pm.response.json().id);"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"nome\": \"Mouse sem fio\",\n  \"categoria\": \"Eletrônicos\",\n  \"precoUnitario\": 89.90,\n  \"estoque\": 25,\n  \"status\": \"Ativo\"\n}" },
+            "url": "{{baseUrl}}/api/produtos"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pedidos",
+      "item": [
+        { "name": "Listar pedidos", "request": { "method": "GET", "url": "{{baseUrl}}/api/pedidos?page=1&limit=20&status=Processando" } },
+        { "name": "Buscar pedido", "request": { "method": "GET", "url": "{{baseUrl}}/api/pedidos/{{pedidoId}}" } },
+        {
+          "name": "Criar pedido",
+          "event": [{ "listen": "test", "script": { "exec": ["if (pm.response.code === 201) pm.collectionVariables.set('pedidoId', pm.response.json().id);"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"clienteId\": \"{{clienteId}}\",\n  \"produtoId\": \"{{produtoId}}\",\n  \"quantidade\": 2,\n  \"formaPagamento\": \"Pix\"\n}" },
+            "url": "{{baseUrl}}/api/pedidos"
+          }
+        }
+      ]
+    }
+  ]
+}
