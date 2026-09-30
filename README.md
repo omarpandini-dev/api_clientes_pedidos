@@ -2,6 +2,8 @@
 
 Backend Node.js/Express com PostgreSQL, importação idempotente de Excel e execução em Docker. A API preserva os IDs da base (`CLI0001`, `PROD001`, `PED00001`) e gera novos IDs em faixas separadas.
 
+O repositório também contém uma interface React responsiva em `frontend/`, baseada no `template.png` e conectada aos endpoints desta API.
+
 ## Requisitos e estrutura
 
 - Docker com Compose (recomendado), ou Node.js 20+ e PostgreSQL 16+
@@ -16,6 +18,7 @@ postman/        coleção importável
 scripts/        migrations, validação e importação
 src/            API, rotas, banco e regras de negócio
 test/           testes automatizados
+frontend/       interface React/Vite e seu Dockerfile
 ```
 
 Os pedidos históricos usam o preço do produto da aba `Produtos` no momento da importação. As colunas calculadas por fórmula na aba `Pedidos` não são lidas: cliente, produto e UF vêm das relações; preço e total são derivados dos IDs e da quantidade. O saldo da aba `Produtos` é importado como estoque atual e **não** é descontado pela carga histórica.
@@ -30,6 +33,8 @@ docker compose exec api npm run migrate
 docker compose exec api npm run import
 curl http://localhost:3000/health
 ```
+
+A interface fica disponível em `http://localhost:8080`.
 
 O Compose usa uma chave apenas para desenvolvimento. Para defini-la explicitamente no terminal antes de subir os containers:
 
@@ -217,6 +222,7 @@ NODE_ENV=production
 PORT=3000
 DATABASE_URL=postgresql://USUARIO:SENHA@HOST_INTERNO:5432/NOME_DO_BANCO
 API_KEY=CHAVE_ALEATORIA_COM_PELO_MENOS_32_CARACTERES
+CORS_ORIGINS=https://app.seu-dominio.com
 DB_SSL=false
 XLSX_PATH=dados/Base_Ficticia_Clientes_Produtos_Pedidos.xlsx
 ```
@@ -237,3 +243,7 @@ npm run import
 Antes de cada nova versão, execute `npm test`. Em implantações futuras, rode `npm run migrate` antes de liberar tráfego; o executor registra migrations aplicadas e ignora as anteriores.
 
 Referências oficiais: [App Service](https://easypanel.io/docs/services/app), [Postgres Service](https://easypanel.io/docs/services/postgres) e [Builders/Dockerfile](https://easypanel.io/docs/builders).
+
+### Publicação da interface React
+
+Crie outro serviço **App** no mesmo projeto do Easypanel, com Build Path `/frontend` e o Dockerfile dessa pasta. Configure `VITE_API_BASE_URL` com o domínio público da API e `VITE_API_KEY` com a chave usada no backend. Aponte o domínio do frontend para a porta interna `80` e inclua esse domínio em `CORS_ORIGINS` no backend. Consulte [frontend/README.md](frontend/README.md) para os comandos e o alerta sobre chaves incorporadas no navegador.

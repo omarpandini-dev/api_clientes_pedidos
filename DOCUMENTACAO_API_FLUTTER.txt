@@ -1,0 +1,611 @@
+DOCUMENTAÇÃO DA API — CLIENTES, PRODUTOS E PEDIDOS
+=================================================
+
+Versão: 1.0
+Formato: REST/JSON
+Uso previsto: aplicativo Flutter ou outro cliente HTTP
+
+
+1. CONFIGURAÇÃO GERAL
+=====================
+
+URL base local:
+http://localhost:3000
+
+URL base em produção:
+https://SEU-DOMINIO
+
+Não coloque uma barra no final da URL base. Exemplo de endereço completo:
+https://SEU-DOMINIO/api/clientes
+
+Todas as requisições e respostas utilizam JSON em UTF-8.
+
+
+2. AUTENTICAÇÃO
+===============
+
+Todas as rotas iniciadas por /api exigem a chave no cabeçalho HTTP:
+
+X-API-Key: SUA_CHAVE
+
+Nas requisições POST também envie:
+
+Content-Type: application/json
+
+Exemplo de cabeçalhos:
+
+X-API-Key: SUA_CHAVE
+Content-Type: application/json
+Accept: application/json
+
+Sem a chave:
+
+HTTP 401
+{
+  "erro": "Chave de API não informada"
+}
+
+Com uma chave incorreta:
+
+HTTP 401
+{
+  "erro": "Chave de API inválida"
+}
+
+O endpoint /health é público e não exige a chave.
+
+IMPORTANTE PARA FLUTTER:
+Uma chave fixa incluída dentro de um APK, IPA ou aplicativo Web pode ser
+extraída por terceiros. A API_KEY atual é adequada para desenvolvimento,
+integrações internas ou uma primeira camada de proteção, mas não identifica
+usuários. Para publicar um aplicativo para usuários externos, recomenda-se
+adicionar autenticação de usuários e tokens com expiração antes do lançamento.
+
+
+3. TIPOS E CONVENÇÕES
+====================
+
+IDs:
+- Cliente: CLI seguido de pelo menos 4 dígitos. Exemplo: CLI0001.
+- Produto: PROD seguido de pelo menos 3 dígitos. Exemplo: PROD001.
+- Pedido: PED seguido de pelo menos 5 dígitos. Exemplo: PED00001.
+
+Datas:
+- Formato: AAAA-MM-DD.
+- Exemplo: 2026-09-30.
+- No Flutter, podem ser convertidas com DateTime.parse(valor).
+
+Valores monetários:
+- precoUnitario e valorTotal são devolvidos como strings decimais.
+- Exemplo: "24.90".
+- Isso evita perda de precisão durante a transmissão.
+- No Flutter, use double.parse(valor) apenas para exibição simples ou um
+  pacote decimal para cálculos financeiros.
+
+Paginação:
+- page: página solicitada, começando em 1. Valor padrão: 1.
+- limit: registros por página. Valor padrão: 20; máximo: 100.
+
+Formato comum das listagens:
+
+{
+  "dados": [],
+  "paginacao": {
+    "page": 1,
+    "limit": 20,
+    "total": 100,
+    "totalPages": 5
+  }
+}
+
+
+4. HEALTH CHECK
+===============
+
+GET /health
+
+Autenticação: não exigida.
+
+Resposta com aplicação e banco disponíveis — HTTP 200:
+
+{
+  "status": "ok",
+  "banco": "conectado"
+}
+
+Resposta com banco indisponível — HTTP 503:
+
+{
+  "status": "erro",
+  "banco": "indisponível"
+}
+
+
+5. CLIENTES
+===========
+
+5.1 Listar clientes
+--------------------
+
+GET /api/clientes
+
+Parâmetros opcionais na URL:
+- page: número da página.
+- limit: itens por página, entre 1 e 100.
+- nome: busca parcial, sem diferenciar maiúsculas de minúsculas.
+- cidade: busca parcial, sem diferenciar maiúsculas de minúsculas.
+
+Exemplo:
+GET /api/clientes?page=1&limit=20&nome=Lucas&cidade=Fortaleza
+
+Resposta — HTTP 200:
+
+{
+  "dados": [
+    {
+      "id": "CLI0001",
+      "nome": "Lucas Lima Garcia",
+      "email": "lucas.lima.garcia.001@exemplo.invalid",
+      "telefone": "(00) 90000-0001",
+      "cidade": "Fortaleza",
+      "uf": "CE",
+      "segmento": "Educação",
+      "dataCadastro": "2025-07-08"
+    }
+  ],
+  "paginacao": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "totalPages": 1
+  }
+}
+
+
+5.2 Consultar cliente por ID
+----------------------------
+
+GET /api/clientes/:id
+
+Exemplo:
+GET /api/clientes/CLI0001
+
+Resposta — HTTP 200:
+
+{
+  "id": "CLI0001",
+  "nome": "Lucas Lima Garcia",
+  "email": "lucas.lima.garcia.001@exemplo.invalid",
+  "telefone": "(00) 90000-0001",
+  "cidade": "Fortaleza",
+  "uf": "CE",
+  "segmento": "Educação",
+  "dataCadastro": "2025-07-08"
+}
+
+Se não existir — HTTP 404:
+
+{
+  "erro": "Cliente não encontrado"
+}
+
+
+5.3 Cadastrar cliente
+---------------------
+
+POST /api/clientes
+
+Corpo:
+
+{
+  "nome": "Maria Oliveira",
+  "email": "maria.oliveira@example.com",
+  "telefone": "(11) 99999-9999",
+  "cidade": "São Paulo",
+  "uf": "SP",
+  "segmento": "Tecnologia",
+  "dataCadastro": "2026-09-30"
+}
+
+dataCadastro é opcional. Quando omitida, o servidor usa a data atual.
+O ID não deve ser enviado; ele é gerado pelo servidor.
+
+Regras principais:
+- nome: 2 a 200 caracteres.
+- email: endereço válido, máximo de 254 caracteres e único.
+- telefone: 5 a 40 caracteres.
+- cidade: 2 a 120 caracteres.
+- uf: exatamente duas letras; será convertida para maiúsculas.
+- segmento: 2 a 100 caracteres.
+- dataCadastro: opcional, no formato AAAA-MM-DD.
+
+Resposta — HTTP 201:
+
+{
+  "id": "CLI1001",
+  "nome": "Maria Oliveira",
+  "email": "maria.oliveira@example.com",
+  "telefone": "(11) 99999-9999",
+  "cidade": "São Paulo",
+  "uf": "SP",
+  "segmento": "Tecnologia",
+  "dataCadastro": "2026-09-30"
+}
+
+
+6. PRODUTOS
+===========
+
+6.1 Listar produtos
+-------------------
+
+GET /api/produtos
+
+Parâmetros opcionais:
+- page: número da página.
+- limit: itens por página, entre 1 e 100.
+- nome: busca parcial pelo nome.
+- categoria: busca parcial pela categoria.
+
+Exemplo:
+GET /api/produtos?page=1&limit=20&nome=Caderno&categoria=Papelaria
+
+Resposta — HTTP 200:
+
+{
+  "dados": [
+    {
+      "id": "PROD001",
+      "nome": "Caderno Universitário",
+      "categoria": "Papelaria",
+      "precoUnitario": "24.90",
+      "estoque": 85,
+      "status": "Ativo"
+    }
+  ],
+  "paginacao": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "totalPages": 1
+  }
+}
+
+
+6.2 Consultar produto por ID
+----------------------------
+
+GET /api/produtos/:id
+
+Exemplo:
+GET /api/produtos/PROD001
+
+Resposta — HTTP 200:
+
+{
+  "id": "PROD001",
+  "nome": "Caderno Universitário",
+  "categoria": "Papelaria",
+  "precoUnitario": "24.90",
+  "estoque": 85,
+  "status": "Ativo"
+}
+
+Se não existir — HTTP 404:
+
+{
+  "erro": "Produto não encontrado"
+}
+
+
+6.3 Cadastrar produto
+---------------------
+
+POST /api/produtos
+
+Corpo:
+
+{
+  "nome": "Mouse sem fio",
+  "categoria": "Eletrônicos",
+  "precoUnitario": 89.90,
+  "estoque": 25,
+  "status": "Ativo"
+}
+
+O ID não deve ser enviado; ele é gerado pelo servidor.
+
+Regras principais:
+- nome: 2 a 200 caracteres.
+- categoria: 2 a 120 caracteres.
+- precoUnitario: número maior ou igual a zero.
+- estoque: número inteiro maior ou igual a zero.
+- status: "Ativo" ou "Inativo". Quando omitido, assume "Ativo".
+
+Resposta — HTTP 201:
+
+{
+  "id": "PROD1001",
+  "nome": "Mouse sem fio",
+  "categoria": "Eletrônicos",
+  "precoUnitario": "89.90",
+  "estoque": 25,
+  "status": "Ativo"
+}
+
+
+7. PEDIDOS
+==========
+
+Cada pedido possui exatamente um produto.
+
+
+7.1 Listar pedidos
+------------------
+
+GET /api/pedidos
+
+Parâmetros opcionais:
+- page: número da página.
+- limit: itens por página, entre 1 e 100.
+- clienteId: exemplo CLI0001.
+- produtoId: exemplo PROD001.
+- status: comparação sem diferenciar maiúsculas de minúsculas.
+- dataInicio: data mínima no formato AAAA-MM-DD.
+- dataFim: data máxima no formato AAAA-MM-DD.
+
+dataInicio não pode ser posterior a dataFim.
+
+Exemplo:
+GET /api/pedidos?page=1&limit=20&clienteId=CLI0001&status=Processando&dataInicio=2026-01-01&dataFim=2026-12-31
+
+Resposta — HTTP 200:
+
+{
+  "dados": [
+    {
+      "id": "PED100000",
+      "dataPedido": "2026-09-30",
+      "clienteId": "CLI0001",
+      "clienteNome": "Lucas Lima Garcia",
+      "clienteUf": "CE",
+      "produtoId": "PROD001",
+      "produtoNome": "Caderno Universitário",
+      "quantidade": 2,
+      "precoUnitario": "24.90",
+      "valorTotal": "49.80",
+      "formaPagamento": "Pix",
+      "status": "Processando"
+    }
+  ],
+  "paginacao": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "totalPages": 1
+  }
+}
+
+
+7.2 Consultar pedido por ID
+---------------------------
+
+GET /api/pedidos/:id
+
+Exemplo:
+GET /api/pedidos/PED00001
+
+A resposta possui o mesmo formato de um item da listagem, incluindo os nomes
+do cliente e do produto.
+
+Se não existir — HTTP 404:
+
+{
+  "erro": "Pedido não encontrado"
+}
+
+
+7.3 Criar pedido
+----------------
+
+POST /api/pedidos
+
+Corpo:
+
+{
+  "clienteId": "CLI0001",
+  "produtoId": "PROD001",
+  "quantidade": 2,
+  "formaPagamento": "Pix"
+}
+
+Regras importantes:
+- clienteId deve identificar um cliente existente.
+- produtoId deve identificar um produto existente e ativo.
+- quantidade deve ser um inteiro maior que zero.
+- formaPagamento deve possuir de 2 a 80 caracteres.
+- Não envie preço, valor total, status, data ou ID do pedido.
+- O servidor consulta o preço atual e calcula o valor total.
+- O servidor valida e desconta o estoque na mesma transação.
+- O pedido novo recebe status "Processando".
+
+Resposta — HTTP 201:
+
+{
+  "id": "PED100000",
+  "dataPedido": "2026-09-30",
+  "clienteId": "CLI0001",
+  "clienteNome": "Lucas Lima Garcia",
+  "clienteUf": "CE",
+  "produtoId": "PROD001",
+  "produtoNome": "Caderno Universitário",
+  "quantidade": 2,
+  "precoUnitario": "24.90",
+  "valorTotal": "49.80",
+  "formaPagamento": "Pix",
+  "status": "Processando"
+}
+
+Cliente inexistente — HTTP 400:
+
+{
+  "erro": "Cliente CLI9999 não encontrado"
+}
+
+Produto inexistente — HTTP 400:
+
+{
+  "erro": "Produto PROD999 não encontrado"
+}
+
+Estoque insuficiente — HTTP 409:
+
+{
+  "erro": "Estoque insuficiente: disponível 2"
+}
+
+Produto inativo — HTTP 409:
+
+{
+  "erro": "Produto PROD001 não está ativo"
+}
+
+
+8. ERROS GERAIS
+===============
+
+HTTP 400 — corpo, parâmetro, data ou referência inválida:
+
+{
+  "erro": "Dados inválidos",
+  "detalhes": [
+    {
+      "campo": "email",
+      "mensagem": "Invalid email"
+    }
+  ]
+}
+
+HTTP 401 — API Key ausente ou incorreta.
+HTTP 404 — recurso ou rota não encontrada.
+HTTP 409 — duplicidade, falta de estoque ou produto inativo.
+HTTP 500 — erro interno inesperado.
+HTTP 503 — banco indisponível no health check.
+
+Formato mínimo de erro:
+
+{
+  "erro": "Mensagem explicando o erro"
+}
+
+
+9. EXEMPLO DE CLIENTE HTTP EM FLUTTER
+=====================================
+
+Dependência sugerida no pubspec.yaml:
+
+dependencies:
+  http: ^1.0.0
+
+Exemplo básico em Dart:
+
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+class ApiClient {
+  ApiClient({required this.baseUrl, required this.apiKey});
+
+  final String baseUrl;
+  final String apiKey;
+
+  Map<String, String> get headers => {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    'X-API-Key': apiKey,
+  };
+
+  Future<Map<String, dynamic>> listarProdutos({int page = 1}) async {
+    final uri = Uri.parse('$baseUrl/api/produtos').replace(
+      queryParameters: {'page': '$page', 'limit': '20'},
+    );
+    final response = await http.get(uri, headers: headers);
+    return _decode(response);
+  }
+
+  Future<Map<String, dynamic>> criarPedido({
+    required String clienteId,
+    required String produtoId,
+    required int quantidade,
+    required String formaPagamento,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/pedidos'),
+      headers: headers,
+      body: jsonEncode({
+        'clienteId': clienteId,
+        'produtoId': produtoId,
+        'quantidade': quantidade,
+        'formaPagamento': formaPagamento,
+      }),
+    );
+    return _decode(response);
+  }
+
+  Map<String, dynamic> _decode(http.Response response) {
+    final body = jsonDecode(utf8.decode(response.bodyBytes));
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      final message = body is Map ? body['erro'] : null;
+      throw Exception(message ?? 'Erro HTTP ${response.statusCode}');
+    }
+    return Map<String, dynamic>.from(body as Map);
+  }
+}
+
+Observações para o Flutter:
+- Use Uri.replace(queryParameters: ...) para montar filtros com escaping correto.
+- Decodifique response.bodyBytes como UTF-8 para preservar acentos.
+- Trate 401 separadamente para identificar erro de configuração da chave.
+- Em listas infinitas, pare quando page atingir totalPages.
+- Após criar um pedido, atualize o produto exibido para refletir o novo estoque.
+- Não registre a API Key em logs de produção.
+- Em Flutter Web, o navegador poderá exigir configuração de CORS na API.
+
+
+10. ORDEM SUGERIDA PARA INTEGRAÇÃO NO FLUTTER
+==============================================
+
+1. Chamar GET /health sem autenticação.
+2. Configurar baseUrl e o cabeçalho X-API-Key em um cliente HTTP central.
+3. Implementar os modelos Cliente, Produto, Pedido e Paginação.
+4. Implementar GET /api/clientes e GET /api/produtos.
+5. Implementar as telas de detalhes usando os endpoints por ID.
+6. Implementar os cadastros de cliente e produto.
+7. Implementar a criação de pedido.
+8. Tratar explicitamente erros 400, 401, 404, 409, 500 e 503.
+9. Adicionar autenticação real de usuários antes de publicar um aplicativo
+   destinado ao público externo.
+
+
+11. VARIÁVEIS RECOMENDADAS NO PROJETO FLUTTER
+==============================================
+
+Execução local:
+
+flutter run \
+  --dart-define=API_BASE_URL=http://localhost:3000 \
+  --dart-define=API_KEY=SUA_CHAVE_LOCAL
+
+Produção:
+
+flutter build apk \
+  --dart-define=API_BASE_URL=https://SEU-DOMINIO \
+  --dart-define=API_KEY=SUA_CHAVE
+
+Leitura no Dart:
+
+const apiBaseUrl = String.fromEnvironment('API_BASE_URL');
+const apiKey = String.fromEnvironment('API_KEY');
+
+ATENÇÃO: dart-define não transforma a API Key em segredo. O valor ainda pode
+ser recuperado do aplicativo compilado. Para um aplicativo público, a solução
+correta é autenticação individual de usuários e tokens de curta duração.

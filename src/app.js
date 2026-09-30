@@ -4,10 +4,12 @@ import { produtosRouter } from './routes/produtos.js';
 import { pedidosRouter } from './routes/pedidos.js';
 import { errorHandler, notFoundHandler } from './middleware/error-handler.js';
 import { apiKeyAuth } from './middleware/api-key-auth.js';
+import { cors } from './middleware/cors.js';
 
-export function createApp(pool, apiKey) {
+export function createApp(pool, apiKey, corsOrigins) {
   const app = express();
   app.disable('x-powered-by');
+  app.use(cors(corsOrigins));
   app.use(express.json({ limit: '100kb' }));
 
   app.get('/health', async (req, res) => {

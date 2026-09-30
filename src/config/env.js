@@ -11,6 +11,7 @@ const schema = z.object({
   PORT: z.coerce.number().int().min(1).max(65535).default(3000),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL é obrigatória'),
   API_KEY: z.string().min(32, 'API_KEY deve ter pelo menos 32 caracteres'),
+  CORS_ORIGINS: z.string().default('http://localhost:8080,http://127.0.0.1:8080'),
   DB_SSL: booleanString,
   XLSX_PATH: z.string().default('dados/Base_Ficticia_Clientes_Produtos_Pedidos.xlsx')
 });

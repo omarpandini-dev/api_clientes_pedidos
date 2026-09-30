@@ -22,6 +22,7 @@ services:
       PORT: 3000
       DATABASE_URL: postgresql://app:local_dev_password@postgres:5432/clientes_pedidos
       API_KEY: ${API_KEY:-local_dev_api_key_change_me_1234567890}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080,http://127.0.0.1:8080}
       DB_SSL: "false"
       XLSX_PATH: dados/Base_Ficticia_Clientes_Produtos_Pedidos.xlsx
     ports:
@@ -29,6 +30,17 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: ${PUBLIC_API_URL:-http://localhost:3000}
+        VITE_API_KEY: ${API_KEY:-local_dev_api_key_change_me_1234567890}
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
 
 volumes:
   postgres_data:
