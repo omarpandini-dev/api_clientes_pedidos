@@ -7,6 +7,7 @@ Backend Node.js/Express com PostgreSQL, importação idempotente de Excel e exec
 - Docker com Compose (recomendado), ou Node.js 20+ e PostgreSQL 16+
 - A planilha real em `dados/Base_Ficticia_Clientes_Produtos_Pedidos.xlsx`
 - Nenhuma credencial fica no código; a aplicação usa variáveis de ambiente
+- Uma chave aleatória de pelo menos 32 caracteres para proteger as rotas `/api/*`
 
 ```text
 dados/          planilha de origem
@@ -29,6 +30,15 @@ docker compose exec api npm run migrate
 docker compose exec api npm run import
 curl http://localhost:3000/health
 ```
+
+O Compose usa uma chave apenas para desenvolvimento. Para defini-la explicitamente no terminal antes de subir os containers:
+
+```bash
+export API_KEY="sua-chave-aleatoria-com-pelo-menos-32-caracteres"
+docker compose up -d --build
+```
+
+No PowerShell, use `$env:API_KEY="sua-chave-aleatoria-com-pelo-menos-32-caracteres"`.
 
 Resposta esperada do health:
 
@@ -63,6 +73,28 @@ npm run validate:data
 npm run import
 npm test
 npm start
+```
+
+## Autenticação por chave de API
+
+O endpoint `/health` é público. Todas as rotas iniciadas por `/api/` exigem o cabeçalho:
+
+```http
+X-API-Key: SUA_CHAVE
+```
+
+Gere uma chave forte, por exemplo:
+
+```bash
+openssl rand -hex 32
+```
+
+Grave o resultado somente na variável `API_KEY` do ambiente. Não inclua a chave real no Git, no Dockerfile ou no código. Uma chamada sem chave ou com chave incorreta retorna HTTP `401`.
+
+Exemplo:
+
+```bash
+curl -H "X-API-Key: SUA_CHAVE" http://localhost:3000/api/clientes
 ```
 
 ## Endpoints
@@ -158,7 +190,9 @@ Erros de validação retornam `400`, recursos ausentes em consultas retornam `40
 
 ## Postman
 
-Importe [postman/API-Clientes-Produtos-Pedidos.postman_collection.json](postman/API-Clientes-Produtos-Pedidos.postman_collection.json). A coleção define `baseUrl` como `http://localhost:3000`; troque pelo domínio HTTPS de produção no Easypanel.
+Importe [postman/API-Clientes-Produtos-Pedidos.postman_collection.json](postman/API-Clientes-Produtos-Pedidos.postman_collection.json). Em **Variables**, ajuste `baseUrl` para `http://localhost:3000` no ambiente local ou para o domínio HTTPS da aplicação no Easypanel.
+
+Na coleção, abra **Variables**, cole em `apiKey` exatamente o mesmo valor configurado como `API_KEY` na aplicação e salve. A autenticação está definida no nível da coleção e o Postman adicionará `X-API-Key` automaticamente a todas as requisições.
 
 Ordem sugerida:
 
@@ -182,6 +216,7 @@ Ordem sugerida:
 NODE_ENV=production
 PORT=3000
 DATABASE_URL=postgresql://USUARIO:SENHA@HOST_INTERNO:5432/NOME_DO_BANCO
+API_KEY=CHAVE_ALEATORIA_COM_PELO_MENOS_32_CARACTERES
 DB_SSL=false
 XLSX_PATH=dados/Base_Ficticia_Clientes_Produtos_Pedidos.xlsx
 ```

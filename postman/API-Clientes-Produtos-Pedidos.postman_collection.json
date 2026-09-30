@@ -4,8 +4,17 @@
     "name": "API Clientes, Produtos e Pedidos",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      { "key": "key", "value": "X-API-Key", "type": "string" },
+      { "key": "value", "value": "{{apiKey}}", "type": "string" },
+      { "key": "in", "value": "header", "type": "string" }
+    ]
+  },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "baseUrl", "value": "https://python-api-cli.cr61qk.easypanel.host/" },
+    { "key": "apiKey", "value": "COLE_AQUI_A_MESMA_CHAVE_CONFIGURADA_NA_API" },
     { "key": "clienteId", "value": "CLI0001" },
     { "key": "produtoId", "value": "PROD001" },
     { "key": "pedidoId", "value": "PED00001" }

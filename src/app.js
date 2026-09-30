@@ -3,8 +3,9 @@ import { clientesRouter } from './routes/clientes.js';
 import { produtosRouter } from './routes/produtos.js';
 import { pedidosRouter } from './routes/pedidos.js';
 import { errorHandler, notFoundHandler } from './middleware/error-handler.js';
+import { apiKeyAuth } from './middleware/api-key-auth.js';
 
-export function createApp(pool) {
+export function createApp(pool, apiKey) {
   const app = express();
   app.disable('x-powered-by');
   app.use(express.json({ limit: '100kb' }));
@@ -17,6 +18,7 @@ export function createApp(pool) {
       res.status(503).json({ status: 'erro', banco: 'indisponível' });
     }
   });
+  app.use('/api', apiKeyAuth(apiKey));
   app.use('/api/clientes', clientesRouter(pool));
   app.use('/api/produtos', produtosRouter(pool));
   app.use('/api/pedidos', pedidosRouter(pool));

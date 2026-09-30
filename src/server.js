@@ -3,7 +3,7 @@ import { getEnv } from './config/env.js';
 import { closePool, getPool } from './db/pool.js';
 
 const env = getEnv();
-const app = createApp(getPool());
+const app = createApp(getPool(), env.API_KEY);
 const server = app.listen(env.PORT, '0.0.0.0', () => {
   console.log(`API escutando em 0.0.0.0:${env.PORT}`);
 });

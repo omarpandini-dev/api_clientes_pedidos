@@ -21,6 +21,7 @@ services:
       NODE_ENV: development
       PORT: 3000
       DATABASE_URL: postgresql://app:local_dev_password@postgres:5432/clientes_pedidos
+      API_KEY: ${API_KEY:-local_dev_api_key_change_me_1234567890}
       DB_SSL: "false"
       XLSX_PATH: dados/Base_Ficticia_Clientes_Produtos_Pedidos.xlsx
     ports:

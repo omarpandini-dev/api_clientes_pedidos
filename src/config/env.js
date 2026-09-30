@@ -10,6 +10,7 @@ const schema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().min(1).max(65535).default(3000),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL é obrigatória'),
+  API_KEY: z.string().min(32, 'API_KEY deve ter pelo menos 32 caracteres'),
   DB_SSL: booleanString,
   XLSX_PATH: z.string().default('dados/Base_Ficticia_Clientes_Produtos_Pedidos.xlsx')
 });
